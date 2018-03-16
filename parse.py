@@ -39,7 +39,8 @@ if __name__ == '__main__':
 	# each dataset contains # of imgs
 	dataset_size = 5
 	# shape of hdf5 dataset N*H*W*C
-	dataset_shape = (dataset_size, 720, 960, 3)
+	H = 720
+	W = 960
 	# total number of images using
 	num_img_using = 13
 	# output hdf_path
@@ -55,25 +56,31 @@ if __name__ == '__main__':
 
 	for idx in trange(num_img_using):
 		rgb_img_path = "E:\\data\\SYNTHIA\\RGB\\{}".format(img_names[idx].rstrip('\n'))
-		gt_img_path = "E:\\data\\SYNTHIA\\GT\\{}".format(img_names[idx].rstrip('\n'))
+		gt_txt_path = "E:\\data\\SYNTHIA\\GTTXT\\{}.txt".format(img_names[idx].rstrip('.png\n'))
 
+		gt_txt = []
 		input_img = cv2.imread(rgb_img_path,1)
-		label_img = cv2.imread(gt_img_path,1)
+		f = open(gt_txt_path)
+		lines = f.read().splitlines()
+
+		for l in lines:
+			values = l.split(" ")
+			gt_txt.append([int(i) for i in values ])
 
 		# testing if image loaded correctly
 		# cv2.imshow('origin_image', img)
 		# cv2.waitKey(0)
 		# cv2.destroyAllWindows()
 		data += [input_img]
-		labels += [label_img]
+		labels += [gt_txt]
 
 		# every time dataset_size number of image read, save it to hdf5
 		if (idx + 1) % dataset_size == 0 and idx != 0:
 			data = np.array(data)
 			labels = np.array(labels)
 			# row, column
-			link = input_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(dataset_size, 720, 960, 3), data=data)
-			label_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(dataset_size, 720, 960, 3), data=labels)
+			link = input_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(dataset_size, H, W, 3), data=data)
+			label_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(dataset_size, H, W), data=labels)
 			print(link.chunks)
 			cur_dataset_idx += 1
 			data = []
@@ -81,10 +88,9 @@ if __name__ == '__main__':
 
 	# if there's some image unsaved with the 'if' statement in previous for statement, save it.
 	if num_img_using % dataset_size != 0:
-		input_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(num_img_using % dataset_size, 720, 960, 3), data=data)
-		label_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(num_img_using % dataset_size, 720, 960, 3), data=labels)
+		input_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(num_img_using % dataset_size, H, W, 3), data=data)
+		label_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(num_img_using % dataset_size, H, W), data=labels)
 
-	f.close()
 	print("{} pair of dataset (inputs + labels) have been created.".format(cur_dataset_idx + 1))
 
 	# with h5py.File(hdf_path, "r") as f:
@@ -92,6 +98,5 @@ if __name__ == '__main__':
 	# 	cv2.waitKey(0)
 	# 	cv2.destroyAllWindows()
 
-	load_data(hdf_path, 3)
-	f.close()
-
+	_, labels = load_data(hdf_path, 3)
+	print(labels[12][0])
