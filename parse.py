@@ -18,7 +18,7 @@ def load_data(data_dir, num_datasets):
 	labels = []
 
 	for idx in range(num_datasets):
-		f = h5py.File(hdf_path, "r")
+		f = h5py.File(hdf5_dir, "r")
 		data += [np.array(f['inputs']["dataset{}".format(idx)])]
 		labels += [np.array(f['labels']["dataset{}".format(idx)])]
 
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 	cur_dataset_idx = 0
 	# each dataset contains # of imgs
 	dataset_size = 5
-	# shape of hdf5 dataset N*H*W*C
+	# shape of training/Ground truth image
 	H = 720
 	W = 960
 	# total number of images using
