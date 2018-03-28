@@ -37,12 +37,12 @@ if __name__ == '__main__':
 	# keep track of total dataset numbers
 	cur_dataset_idx = 0
 	# each dataset contains # of imgs
-	dataset_size = 5
+	dataset_size = 10
 	# shape of training/Ground truth image
 	H = 720
 	W = 960
 	# total number of images using
-	num_img_using = 13
+	num_img_using = 200
 	# output hdf_path
 	hdf_path = "E:\\data\\SYNTHIA\\data.h5"
 
@@ -55,6 +55,7 @@ if __name__ == '__main__':
 	label_group = f.create_group('labels')
 
 	for idx in trange(num_img_using):
+		print("idx is: ", idx)
 		rgb_img_path = "E:\\data\\SYNTHIA\\RGB\\{}".format(img_names[idx].rstrip('\n'))
 		gt_txt_path = "E:\\data\\SYNTHIA\\GTTXT\\{}.txt".format(img_names[idx].rstrip('.png\n'))
 
@@ -76,27 +77,29 @@ if __name__ == '__main__':
 
 		# every time dataset_size number of image read, save it to hdf5
 		if (idx + 1) % dataset_size == 0 and idx != 0:
+			print("wrting to dataset", cur_dataset_idx)
 			data = np.array(data)
 			labels = np.array(labels)
 			# row, column
 			link = input_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(dataset_size, H, W, 3), data=data)
 			label_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(dataset_size, H, W), data=labels)
-			print(link.chunks)
 			cur_dataset_idx += 1
 			data = []
 			labels = []
 
 	# if there's some image unsaved with the 'if' statement in previous for statement, save it.
-	if num_img_using % dataset_size != 0:
+	if (num_img_using + 1) % dataset_size != 0:
 		input_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(num_img_using % dataset_size, H, W, 3), data=data)
 		label_group.create_dataset("dataset{}".format(cur_dataset_idx), shape=(num_img_using % dataset_size, H, W), data=labels)
+		cur_dataset_idx += 1
 
-	print("{} pair of dataset (inputs + labels) have been created.".format(cur_dataset_idx + 1))
+
+	print("{} pair of dataset (inputs + labels) have been created.".format(cur_dataset_idx))
 
 	# with h5py.File(hdf_path, "r") as f:
 	# 	cv2.imshow('origin_image', f['labels']["dataset2"][0])
 	# 	cv2.waitKey(0)
 	# 	cv2.destroyAllWindows()
 
-	_, labels = load_data(hdf_path, 3)
-	print(labels[12][0])
+	# _, labels = load_data(hdf_path, 3)
+	# print(labels[12][0])
